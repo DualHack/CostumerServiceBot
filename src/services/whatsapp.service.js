@@ -1,10 +1,11 @@
 import whatsapp from 'whatsapp-web.js';
 import qrcode from 'qrcode';
+import { join } from 'node:path';
 import env from '../config/env.js';
 import * as incomingMessageService from './incoming-message.service.js';
 
 const client = new whatsapp.Client({
-  authStrategy: new whatsapp.LocalAuth({ dataPath: env.whatsappSessionPath }),
+  authStrategy: new whatsapp.LocalAuth({ dataPath: join(process.cwd(), '.wwebjs_auth') }),
   puppeteer: {
     headless: true,
     executablePath: env.puppeteerExecutablePath,

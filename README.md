@@ -32,10 +32,9 @@ Configure estas variáveis no Render:
 
 ```text
 PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer
-WHATSAPP_SESSION_PATH=/var/data/.wwebjs_auth
 ```
 
-`WHATSAPP_SESSION_PATH=/var/data/.wwebjs_auth` requer um Persistent Disk montado em `/var/data`. Sem esse disco, a sessão do WhatsApp pode ser perdida após reinícios do serviço.
+O `LocalAuth` salva a sessão em `path.join(process.cwd(), '.wwebjs_auth')`. A sessão não é persistente no Render e um novo QR Code poderá ser solicitado após reinícios ou redeploys.
 
 Abra `http://localhost:3000/whatsapp`. Na primeira execução, escaneie o QR Code pelo WhatsApp. A autenticação fica em `.wwebjs_auth`, permitindo reutilizar a sessão após reiniciar o servidor.
 

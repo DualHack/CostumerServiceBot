@@ -22,7 +22,6 @@ const env = {
   openrouterModel: process.env.OPENROUTER_MODEL,
   openrouterSiteUrl: process.env.SITE_URL,
   openrouterAppName: process.env.OPENROUTER_APP_NAME,
-  whatsappSessionPath: process.env.WHATSAPP_SESSION_PATH || '.wwebjs_auth',
   puppeteerExecutablePath
 };
 
