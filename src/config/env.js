@@ -1,6 +1,18 @@
 import dotenv from 'dotenv';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 dotenv.config();
+
+const configuredChromePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+const windowsChromePath = process.platform === 'win32'
+  ? join(process.env.PROGRAMFILES || 'C:\\Program Files', 'Google', 'Chrome', 'Application', 'chrome.exe')
+  : '';
+const puppeteerExecutablePath = configuredChromePath && existsSync(configuredChromePath)
+  ? configuredChromePath
+  : windowsChromePath && existsSync(windowsChromePath)
+    ? windowsChromePath
+    : undefined;
 
 const env = {
   port: Number.parseInt(process.env.PORT || '3000', 10),
@@ -10,7 +22,8 @@ const env = {
   openrouterModel: process.env.OPENROUTER_MODEL,
   openrouterSiteUrl: process.env.SITE_URL,
   openrouterAppName: process.env.OPENROUTER_APP_NAME,
-  whatsappSessionPath: process.env.WHATSAPP_SESSION_PATH || '.wwebjs_auth'
+  whatsappSessionPath: process.env.WHATSAPP_SESSION_PATH || '.wwebjs_auth',
+  puppeteerExecutablePath
 };
 
 export default env;

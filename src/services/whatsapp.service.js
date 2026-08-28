@@ -7,7 +7,12 @@ const client = new whatsapp.Client({
   authStrategy: new whatsapp.LocalAuth({ dataPath: env.whatsappSessionPath }),
   puppeteer: {
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath: env.puppeteerExecutablePath,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage'
+    ],
   },
 });
 const state = { status: 'disconnected', qrCode: null, error: null, phone: null };

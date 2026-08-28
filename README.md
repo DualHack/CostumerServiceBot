@@ -19,6 +19,24 @@ npm install
 npm start
 ```
 
+## Deploy no Render
+
+Use Node.js 22. O Render deve usar exatamente estes comandos:
+
+```text
+Build Command: npm install && npx puppeteer browsers install chrome
+Start Command: npm start
+```
+
+Configure estas variáveis no Render:
+
+```text
+PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer
+WHATSAPP_SESSION_PATH=/var/data/.wwebjs_auth
+```
+
+`WHATSAPP_SESSION_PATH=/var/data/.wwebjs_auth` requer um Persistent Disk montado em `/var/data`. Sem esse disco, a sessão do WhatsApp pode ser perdida após reinícios do serviço.
+
 Abra `http://localhost:3000/whatsapp`. Na primeira execução, escaneie o QR Code pelo WhatsApp. A autenticação fica em `.wwebjs_auth`, permitindo reutilizar a sessão após reiniciar o servidor.
 
 O servidor acessa `/health` imediatamente após iniciar e a cada 10 minutos. Em produção, configure `HEALTH_URL` com a URL pública da aplicação para que um serviço externo de monitoramento também possa manter o servidor ativo.
