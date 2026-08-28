@@ -19,6 +19,17 @@ npm install
 npm start
 ```
 
+## Testes
+
+Execute os testes da API e a validação de sintaxe antes de criar um commit:
+
+```bash
+npm test
+npm run check
+```
+
+O GitHub Actions executa automaticamente essas validações em cada pull request e nos pushes para `main` ou `master`.
+
 Abra `http://localhost:3000/whatsapp`. Na primeira execução, escaneie o QR Code pelo WhatsApp. A autenticação fica em `.wwebjs_auth`, permitindo reutilizar a sessão após reiniciar o servidor.
 
 O servidor acessa `/health` imediatamente após iniciar e a cada 10 minutos. Em produção, configure `HEALTH_URL` com a URL pública da aplicação para que um serviço externo de monitoramento também possa manter o servidor ativo.
