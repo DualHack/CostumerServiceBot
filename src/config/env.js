@@ -19,7 +19,6 @@ const puppeteerExecutablePath = configuredChromePath && existsSync(configuredChr
 
 const env = {
   port: Number.parseInt(process.env.PORT || '3000', 10),
-  healthUrl: `${process.env.SITE_URL}/health` ,
   mongodbUri: process.env.MONGODB_URI,
   openrouterApiKey: process.env.OPENROUTER_API_KEY,
   openrouterModel: process.env.OPENROUTER_MODEL,

@@ -30,14 +30,13 @@ Start Command: npm start
 
 Configure estas variáveis no Render:
 
-```text
-```
+Não é necessária nenhuma variável adicional para o health check interno.
 
 O Puppeteer instala o Chrome em `.cache/puppeteer`, dentro do diretório publicado da aplicação. Remova do Render qualquer variável `PUPPETEER_CACHE_DIR` ou `PUPPETEER_EXECUTABLE_PATH` antiga. O `LocalAuth` salva a sessão em `path.join(process.cwd(), '.wwebjs_auth')`; a sessão não é persistente no Render e um novo QR Code poderá ser solicitado após reinícios ou redeploys.
 
 Abra `http://localhost:3000/whatsapp`. Na primeira execução, escaneie o QR Code pelo WhatsApp. A autenticação fica em `.wwebjs_auth`, permitindo reutilizar a sessão após reiniciar o servidor.
 
-O servidor acessa `/health` imediatamente após iniciar e a cada 10 minutos. Em produção, configure `HEALTH_URL` com a URL pública da aplicação para que um serviço externo de monitoramento também possa manter o servidor ativo.
+O endpoint `/health` fica disponível assim que a API HTTP inicia. A aplicação chama essa rota internamente ao iniciar e a cada 10 minutos.
 
 As informações da empresa, o prompt e as regras são carregados diretamente de `src/util/prompt.js`. A empresa não é salva no MongoDB. O banco armazena apenas clientes, conversas, mensagens e memórias.
 
