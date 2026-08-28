@@ -24,17 +24,16 @@ npm start
 Use Node.js 22. O Render deve usar exatamente estes comandos:
 
 ```text
-Build Command: npm install && npx puppeteer browsers install chrome
+Build Command: PUPPETEER_CACHE_DIR=.cache/puppeteer npm install && PUPPETEER_CACHE_DIR=.cache/puppeteer npx puppeteer browsers install chrome
 Start Command: npm start
 ```
 
 Configure estas variáveis no Render:
 
 ```text
-PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer
 ```
 
-O `LocalAuth` salva a sessão em `path.join(process.cwd(), '.wwebjs_auth')`. A sessão não é persistente no Render e um novo QR Code poderá ser solicitado após reinícios ou redeploys.
+O Puppeteer instala o Chrome em `.cache/puppeteer`, dentro do diretório publicado da aplicação. Remova do Render qualquer variável `PUPPETEER_CACHE_DIR` ou `PUPPETEER_EXECUTABLE_PATH` antiga. O `LocalAuth` salva a sessão em `path.join(process.cwd(), '.wwebjs_auth')`; a sessão não é persistente no Render e um novo QR Code poderá ser solicitado após reinícios ou redeploys.
 
 Abra `http://localhost:3000/whatsapp`. Na primeira execução, escaneie o QR Code pelo WhatsApp. A autenticação fica em `.wwebjs_auth`, permitindo reutilizar a sessão após reiniciar o servidor.
 

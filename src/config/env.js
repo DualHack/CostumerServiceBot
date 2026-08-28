@@ -4,6 +4,9 @@ import { join } from 'node:path';
 
 dotenv.config();
 
+const puppeteerCacheDirectory = join(process.cwd(), '.cache', 'puppeteer');
+process.env.PUPPETEER_CACHE_DIR = puppeteerCacheDirectory;
+
 const configuredChromePath = process.env.PUPPETEER_EXECUTABLE_PATH;
 const windowsChromePath = process.platform === 'win32'
   ? join(process.env.PROGRAMFILES || 'C:\\Program Files', 'Google', 'Chrome', 'Application', 'chrome.exe')
