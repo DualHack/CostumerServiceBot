@@ -21,7 +21,11 @@ function startTyping(message) {
     })
     .then(function (chat) {
       return chat.sendStateTyping().then(function () {
-        return chat;
+        const typingInterval = setInterval(function () {
+          chat.sendStateTyping().catch(function () {});
+        }, 10_000);
+
+        return { chat: chat, typingInterval: typingInterval };
       });
     })
     .catch(function () {
@@ -29,8 +33,11 @@ function startTyping(message) {
     });
 }
 
-function clearTyping(chat) {
-  return Promise.resolve(chat?.clearState ? chat.clearState() : null);
+function clearTyping(typingState) {
+  if (!typingState) return Promise.resolve();
+
+  clearInterval(typingState.typingInterval);
+  return Promise.resolve(typingState.chat?.clearState ? typingState.chat.clearState() : null);
 }
 
 function sendReply(message, text) {
@@ -51,23 +58,24 @@ function enqueueMessage(message) {
   console.log("Mensagem recebida de " + message.from);
   const queueId = message.from;
   const previous = messageQueues[queueId] || Promise.resolve();
+  const typingPromise = startTyping(message);
   const task = previous.then(function () {
-    let typingChat;
-    return incomingMessageService
-      .processIncomingMessage(message, {
-        startTyping: function () {
-          return startTyping(message).then(function (chat) {
-            typingChat = chat;
-            return chat;
-          });
-        },
-        sendReply: sendReply,
-      })
-      .then(function (result) {
-        return clearTyping(typingChat).then(function () {
+    let typingState;
+    return typingPromise.then(function (startedTyping) {
+      typingState = startedTyping;
+      return incomingMessageService
+        .processIncomingMessage(message, {
+          startTyping: function () {
+            return Promise.resolve(typingState ? typingState.chat : null);
+          },
+          sendReply: sendReply,
+        })
+        .then(function (result) {
           return result;
         });
-      });
+    }).then(function () {
+      return clearTyping(typingState);
+    });
   });
 
   const queuedTask = task.then(

@@ -7,7 +7,7 @@ import { startHealthPing } from './services/health-ping.service.js';
 connectDatabase()
   .then(function () {
     app.listen(env.port, function () {
-      const healthUrl = env.healthUrl || `http://127.0.0.1:${env.port}/health`;
+      const healthUrl = env.healthUrl;
       console.log(`Abre HTTP em http://localhost:${env.port}/whatsapp`);
       startHealthPing(healthUrl);
     });

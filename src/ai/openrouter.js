@@ -2,7 +2,9 @@ import https from 'node:https';
 import env from '../config/env.js';
 import DEFAULT_COMPANY from '../util/prompt.js';
 
-function requestOpenRouter(messages) {
+const FALLBACK_REPLY = 'Entendi. Um membro da nossa equipa irá analisar a sua mensagem e entrará em contacto em breve.';
+
+function requestOpenRouter(messages, attempt = 0) {
   return new Promise(function (resolve, reject) {
     if (!env.openrouterApiKey || !env.openrouterModel) {
       return reject(new Error('OPENROUTER_API_KEY e OPENROUTER_MODEL precisam estar configurados.'));
@@ -11,7 +13,8 @@ function requestOpenRouter(messages) {
     const body = JSON.stringify({
       model: env.openrouterModel,
       messages: messages,
-      reasoning: { exclude: true }
+      max_tokens: 500,
+      reasoning: attempt === 0 ? { exclude: true } : { enabled: false }
     });
     const request = https.request({
       hostname: 'openrouter.ai',
@@ -46,7 +49,11 @@ function requestOpenRouter(messages) {
         }
         const reply = normalizeReply(parsed.choices[0].message.content);
         if (!reply) {
-          return reject(new Error('OpenRouter retornou uma resposta vazia.'));
+          if (attempt === 0) {
+            return requestOpenRouter(messages, 1).then(resolve, reject);
+          }
+          console.warn('OpenRouter retornou conteúdo vazio; usando resposta de fallback.');
+          return resolve(FALLBACK_REPLY);
         }
         resolve(reply);
       });
@@ -59,7 +66,10 @@ function requestOpenRouter(messages) {
 
 function normalizeReply(content) {
   const text = Array.isArray(content)
-    ? content.filter((part) => part.type === 'text').map((part) => part.text).join('')
+    ? content
+      .filter((part) => part && (part.type === 'text' || part.type === 'output_text') && part.text)
+      .map((part) => part.text)
+      .join('')
     : String(content || '');
 
   const cleanedText = text
