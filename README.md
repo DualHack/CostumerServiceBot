@@ -23,7 +23,7 @@ Abra `http://localhost:3000/whatsapp`. Na primeira execução, escaneie o QR Cod
 
 O servidor acessa `/health` imediatamente após iniciar e a cada 10 minutos. Em produção, configure `HEALTH_URL` com a URL pública da aplicação para que um serviço externo de monitoramento também possa manter o servidor ativo.
 
-A empresa `KwanzaSites` é criada automaticamente no MongoDB na primeira mensagem recebida, com o prompt e as regras padrão. Os dados de clientes, conversas, mensagens e memórias ficam separados por empresa e cliente.
+As informações da empresa, o prompt e as regras são carregados diretamente de `src/util/prompt.js`. A empresa não é salva no MongoDB. O banco armazena apenas clientes, conversas, mensagens e memórias.
 
 ## API
 

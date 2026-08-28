@@ -5,12 +5,21 @@ function createMessage(data) {
   return Message.create(data);
 }
 
-function getConversationContext(company, customer, conversation) {
+function getConversationContext(customer, conversation) {
   return Promise.all([
     Message.find({ conversation: conversation._id }).sort({ createdAt: -1 }).limit(20).exec(),
-    Memory.find({ company: company._id, customer: customer._id }).sort({ key: 1 }).exec()
+    Memory.find({ customer: customer._id }).sort({ key: 1 }).exec()
   ]).then(function (parts) {
-    return { history: parts[0].reverse(), memories: parts[1] };
+    const history = [...parts[0]];
+    history.reverse();
+    return {
+      history: history,
+      memories: parts[1],
+      context: {
+        isNewUser: false,
+        hasMemory: parts[1].length > 0
+      }
+    };
   });
 }
 

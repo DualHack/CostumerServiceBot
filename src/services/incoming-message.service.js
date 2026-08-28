@@ -1,5 +1,4 @@
 import { generateReply } from '../ai/openrouter.js';
-import * as companyService from './company.service.js';
 import * as customerService from './customer.service.js';
 import * as conversationService from './conversation.service.js';
 import * as messageService from './message.service.js';
@@ -11,31 +10,28 @@ function isProcessableMessage(message) {
 function processIncomingMessage(message, transport) {
   if (!isProcessableMessage(message)) return Promise.resolve();
 
-  let stage = 'empresa';
+  let stage = 'cliente';
   const whatsappId = message.from;
   const customerName = message._data?.notifyName;
 
   return Promise.resolve()
     .then(function () { return transport.startTyping(message); })
     .then(function () {
-      return companyService.getOrCreateDefaultCompany();
+      return customerService.getOrCreateCustomer(whatsappId, customerName);
     })
-    .then(function (company) {
-      stage = 'cliente';
-      return customerService.getOrCreateCustomer(company, whatsappId, customerName)
-        .then(function (customer) { return { company: company, customer: customer }; });
+    .then(function (customerResult) {
+      return { customer: customerResult.customer, isNewUser: customerResult.isNewUser };
     })
     .then(function (context) {
       stage = 'conversa';
-      return conversationService.getOrCreateConversation(context.company, context.customer)
+      return conversationService.getOrCreateConversation(context.customer)
         .then(function (conversation) {
-          return { company: context.company, customer: context.customer, conversation: conversation };
+          return { customer: context.customer, conversation: conversation, isNewUser: context.isNewUser };
         });
     })
     .then(function (context) {
       stage = 'mensagem recebida';
       return messageService.createMessage({
-        company: context.company._id,
         customer: context.customer._id,
         conversation: context.conversation._id,
         role: 'customer',
@@ -46,15 +42,17 @@ function processIncomingMessage(message, transport) {
     .then(function (context) {
       stage = 'OpenRouter';
       return messageService.getConversationContext(
-        context.company,
         context.customer,
         context.conversation
       ).then(function (conversationContext) {
         return generateReply({
-          company: context.company,
           customer: context.customer,
           history: conversationContext.history,
           memories: conversationContext.memories,
+          context: {
+            isNewUser: context.isNewUser,
+            hasMemory: conversationContext.memories.length > 0
+          },
           incomingMessage: message.body
         }).then(function (reply) {
           return { context: context, reply: reply };
@@ -65,7 +63,6 @@ function processIncomingMessage(message, transport) {
       stage = 'envio WhatsApp';
       const context = result.context;
       return messageService.createMessage({
-        company: context.company._id,
         customer: context.customer._id,
         conversation: context.conversation._id,
         role: 'assistant',

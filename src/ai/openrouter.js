@@ -1,5 +1,6 @@
 import https from 'node:https';
 import env from '../config/env.js';
+import DEFAULT_COMPANY from '../util/prompt.js';
 
 function requestOpenRouter(messages) {
   return new Promise(function (resolve, reject) {
@@ -35,12 +36,12 @@ function requestOpenRouter(messages) {
           return reject(new Error('Resposta inválida do OpenRouter.'));
         }
         if (response.statusCode < 200 || response.statusCode >= 300) {
-          if (response.statusCode === 401 || response.statusCode === 403 || (parsed.error && parsed.error.message === 'User not found')) {
+          if (response.statusCode === 401 || response.statusCode === 403 || parsed.error?.message === 'User not found') {
             return reject(new Error('Chave do OpenRouter inválida ou sem autorização.'));
           }
-          return reject(new Error((parsed.error && parsed.error.message) || 'OpenRouter retornou HTTP ' + response.statusCode + '.'));
+          return reject(new Error(parsed.error?.message || 'OpenRouter retornou HTTP ' + response.statusCode + '.'));
         }
-        if (!parsed.choices || !parsed.choices[0] || !parsed.choices[0].message) {
+        if (!parsed.choices?.[0]?.message) {
           return reject(new Error('OpenRouter não retornou uma resposta de texto.'));
         }
         const reply = normalizeReply(parsed.choices[0].message.content);
@@ -63,7 +64,9 @@ function normalizeReply(content) {
 
   const cleanedText = text
     .replace(/<think>[\s\S]*?<\/think>/gi, '')
-    .replace(/^\s*User Safety:\s*safe\s*$/gim, '')
+    .split('\n')
+    .filter((line) => !/^\s*User Safety:\s*safe\s*$/i.test(line))
+    .join('\n')
     .replace(/[*_`#]/g, '')
     .trim();
 
@@ -71,8 +74,8 @@ function normalizeReply(content) {
 }
 
 function generateReply(context) {
-  const rules = context.company.rules?.length ? '\nRegras:\n- ' + context.company.rules.join('\n- ') : '';
-  const systemPrompt = context.company.prompt + '\nEmpresa: ' + context.company.name + ' - ' + context.company.description + rules;
+  const rules = DEFAULT_COMPANY.rules?.length ? '\nRegras:\n- ' + DEFAULT_COMPANY.rules.join('\n- ') : '';
+  const systemPrompt = DEFAULT_COMPANY.prompt + '\nEmpresa: ' + DEFAULT_COMPANY.name + ' - ' + DEFAULT_COMPANY.description + rules;
   const customerMemory = context.memories.length ? context.memories.map(function (item) {
     return item.key + ': ' + item.value;
   }).join('\n') : 'Nenhuma memória cadastrada.';
@@ -82,7 +85,7 @@ function generateReply(context) {
 
   return requestOpenRouter([
     { role: 'system', content: systemPrompt + '\n\nRetorne somente a resposta final destinada ao cliente. Não mostre análises internas, classificações de segurança, reasoning, rótulos ou metadados.' },
-    { role: 'user', content: 'Memória do cliente (' + (context.customer.name || 'sem nome') + '):\n' + customerMemory + '\n\nHistórico da conversa:\n' + history + '\n\nNova mensagem do cliente:\n' + context.incomingMessage }
+    { role: 'user', content: 'Contexto do cliente:\n' + JSON.stringify(context.context) + '\n\nMemória do cliente (' + (context.customer.name || 'sem nome') + '):\n' + customerMemory + '\n\nHistórico da conversa:\n' + history + '\n\nNova mensagem do cliente:\n' + context.incomingMessage }
   ]);
 }
 
